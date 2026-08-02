@@ -10,3 +10,9 @@ app.use(express.json());
 app.use("/api/v1", routes);
 
 export default app;
+
+import { errorHandler } from "./middleware/error.middleware";
+
+// ...
+
+app.use(errorHandler);
