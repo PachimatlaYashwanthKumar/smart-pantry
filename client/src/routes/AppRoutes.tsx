@@ -1,4 +1,12 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+} from "react-router-dom";
+
+import ProtectedRoute from "./ProtectedRoute";
+import DashboardLayout from "../layouts/DashboardLayout";
 
 import Login from "../pages/Login/Login";
 import Register from "../pages/Register/Register";
@@ -7,24 +15,56 @@ import Pantry from "../pages/Pantry/Pantry";
 import Shopping from "../pages/Shopping/Shopping";
 import Analytics from "../pages/Analytics/Analytics";
 import Settings from "../pages/Settings/Settings";
-import ProtectedRoute from "./ProtectedRoute";
 
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public Routes */}
         <Route path="/" element={<Navigate to="/login" replace />} />
 
         <Route path="/login" element={<Login />} />
+
         <Route path="/register" element={<Register />} />
 
-        <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-        <Route path="/pantry" element={<ProtectedRoute><Pantry /></ProtectedRoute>} />
-        <Route path="/shopping" element={<ProtectedRoute><Shopping /></ProtectedRoute>} />
-        <Route path="/analytics" element={<ProtectedRoute><Analytics /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        {/* Protected Routes */}
+        <Route
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            path="/dashboard"
+            element={<Dashboard />}
+          />
 
-        <Route path="*" element={<h1>404 - Page Not Found</h1>} />
+          <Route
+            path="/pantry"
+            element={<Pantry />}
+          />
+
+          <Route
+            path="/shopping"
+            element={<Shopping />}
+          />
+
+          <Route
+            path="/analytics"
+            element={<Analytics />}
+          />
+
+          <Route
+            path="/settings"
+            element={<Settings />}
+          />
+        </Route>
+
+        <Route
+          path="*"
+          element={<h1>404 - Page Not Found</h1>}
+        />
       </Routes>
     </BrowserRouter>
   );
