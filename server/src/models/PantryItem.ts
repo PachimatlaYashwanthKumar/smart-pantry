@@ -1,42 +1,41 @@
-import { Schema, model, Document, Types } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IPantryItem extends Document {
-  userId: Types.ObjectId;
-  name: string;
-  category: string;
+  userId: mongoose.Types.ObjectId;
+  productId: mongoose.Types.ObjectId;
+
   quantity: number;
   unit: string;
+
+  minimumStock: number;
+
   expiryDate?: Date;
+
   location?: string;
-  barcode?: string;
-  notes?: string;
+
   createdAt: Date;
   updatedAt: Date;
 }
 
-const pantryItemSchema = new Schema<IPantryItem>(
+const PantryItemSchema = new Schema<IPantryItem>(
   {
     userId: {
       type: Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
 
-    name: {
-      type: String,
+    productId: {
+      type: Schema.Types.ObjectId,
+      ref: "Product",
       required: true,
-      trim: true,
-    },
-
-    category: {
-      type: String,
-      required: true,
-      trim: true,
     },
 
     quantity: {
       type: Number,
       required: true,
+      default: 0,
       min: 0,
     },
 
@@ -46,22 +45,19 @@ const pantryItemSchema = new Schema<IPantryItem>(
       trim: true,
     },
 
+    minimumStock: {
+      type: Number,
+      default: 1,
+      min: 0,
+    },
+
     expiryDate: {
       type: Date,
     },
 
     location: {
       type: String,
-      trim: true,
-    },
-
-    barcode: {
-      type: String,
-      trim: true,
-    },
-
-    notes: {
-      type: String,
+      default: "",
       trim: true,
     },
   },
@@ -70,4 +66,12 @@ const pantryItemSchema = new Schema<IPantryItem>(
   }
 );
 
-export default model<IPantryItem>("PantryItem", pantryItemSchema);
+PantryItemSchema.index({
+  userId: 1,
+  productId: 1,
+});
+
+export default mongoose.model<IPantryItem>(
+  "PantryItem",
+  PantryItemSchema
+);
