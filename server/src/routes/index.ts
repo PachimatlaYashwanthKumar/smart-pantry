@@ -5,11 +5,13 @@ import productRoutes from "./product.routes";
 import pantryRoutes from "./pantry.routes";
 import shoppingRoutes from "./shopping.routes";
 import healthRoutes from "./health.routes";
+import purchaseRoutes from "./purchase.routes";
 
 const router = Router();
 
 router.use("/auth", authRoutes);
 router.use("/products", productRoutes);
+router.use("/purchases", purchaseRoutes);
 router.use("/pantry", pantryRoutes);
 router.use("/shopping", shoppingRoutes);
 router.use("/health", healthRoutes);
