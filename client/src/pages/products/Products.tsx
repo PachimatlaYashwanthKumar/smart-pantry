@@ -1,6 +1,11 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { FiPlus } from "react-icons/fi";
+import toast from "react-hot-toast";
 
 import ProductForm from "../../components/ProductForm/ProductForm";
+import ProductTable from "../../components/ProductTable/ProductTable";
+import DeleteDialog from "../../components/DeleteDialog/DeleteDialog";
+
 import productService, {
   type Product,
 } from "../../services/product.service";
@@ -9,135 +14,129 @@ export default function Products() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
 
-  async function loadProducts(showLoading = true) {
-    try {
-      if (showLoading) {
-        setLoading(true);
-      }
+  const [showForm, setShowForm] = useState(false);
 
-      const data = await productService.getProducts();
+  const [editingProduct, setEditingProduct] =
+    useState<Product | null>(null);
+
+  const [deleteProductId, setDeleteProductId] =
+    useState<string | null>(null);
+
+  const loadProducts = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const data =
+        await productService.getProducts();
 
       setProducts(data);
     } catch (error) {
       console.error(error);
+
+      toast.error("Failed to load products");
     } finally {
       setLoading(false);
     }
-  }
+  }, []);
 
   useEffect(() => {
     async function fetchProducts() {
-      await loadProducts(false);
+      await loadProducts();
     }
 
     void fetchProducts();
-  }, []);
+  }, [loadProducts]);
 
-  async function handleDelete(id: string) {
-    const confirmed = window.confirm(
-      "Are you sure you want to delete this product?"
-    );
-
-    if (!confirmed) return;
+  async function handleDelete() {
+    if (!deleteProductId) return;
 
     try {
-      await productService.deleteProduct(id);
+      await productService.deleteProduct(
+        deleteProductId
+      );
 
-      await loadProducts();
+      toast.success(
+        "Product deleted successfully"
+      );
+
+      setDeleteProductId(null);
+
+      loadProducts();
     } catch (error) {
       console.error(error);
+
+      toast.error("Failed to delete product");
     }
+  }
+
+  function handleEdit(product: Product) {
+    setEditingProduct(product);
+
+    setShowForm(true);
   }
 
   return (
     <div>
-      <h1 className="mb-6 text-3xl font-bold">
-        Products
-      </h1>
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-3xl font-bold">
+          Products
+        </h1>
 
-      <ProductForm
-        onProductAdded={loadProducts}
-      />
+        <button
+          onClick={() =>
+            setShowForm(!showForm)
+          }
+          className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-3 text-white hover:bg-green-700"
+        >
+          <FiPlus />
 
-      <div className="mt-8 rounded-xl bg-white shadow">
-        {loading ? (
-          <div className="p-8 text-center text-gray-500">
-            Loading products...
-          </div>
-        ) : products.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            No products found.
-          </div>
-        ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="p-4 text-left">
-                  Name
-                </th>
-
-                <th className="p-4 text-left">
-                  Category
-                </th>
-
-                <th className="p-4 text-left">
-                  Brand
-                </th>
-
-                <th className="p-4 text-left">
-                  Unit
-                </th>
-
-                <th className="p-4 text-center">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {products.map((product) => (
-                <tr
-                  key={product._id}
-                  className="border-b hover:bg-gray-50"
-                >
-                  <td className="p-4">
-                    {product.name}
-                  </td>
-
-                  <td className="p-4">
-                    {product.category}
-                  </td>
-
-                  <td className="p-4">
-                    {product.brand || "-"}
-                  </td>
-
-                  <td className="p-4">
-                    {product.defaultUnit}
-                  </td>
-
-                  <td className="space-x-2 p-4 text-center">
-                    <button
-                      className="rounded bg-blue-500 px-3 py-1 text-white transition hover:bg-blue-600"
-                    >
-                      Edit
-                    </button>
-
-                    <button
-                      onClick={() =>
-                        handleDelete(product._id)
-                      }
-                      className="rounded bg-red-500 px-3 py-1 text-white transition hover:bg-red-600"
-                    >
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+          {showForm
+            ? "Close"
+            : "Add Product"}
+        </button>
       </div>
+
+      {showForm && (
+        <div className="mb-8">
+          <ProductForm
+            product={editingProduct}
+            onSuccess={() => {
+              setShowForm(false);
+
+              setEditingProduct(null);
+
+              loadProducts();
+            }}
+            onCancel={() => {
+              setShowForm(false);
+
+              setEditingProduct(null);
+            }}
+          />
+        </div>
+      )}
+
+      {loading ? (
+        <div className="rounded-xl bg-white p-10 text-center shadow">
+          Loading...
+        </div>
+      ) : (
+        <ProductTable
+          products={products}
+          onDelete={(id) =>
+            setDeleteProductId(id)
+          }
+          onEdit={handleEdit}
+        />
+      )}
+
+      <DeleteDialog
+        open={!!deleteProductId}
+        onCancel={() =>
+          setDeleteProductId(null)
+        }
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }
