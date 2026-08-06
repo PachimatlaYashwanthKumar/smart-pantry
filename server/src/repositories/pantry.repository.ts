@@ -64,6 +64,33 @@ class PantryRepository {
     );
   }
 
+  async createStock(
+  pantryData: Partial<IPantryItem>
+) {
+  return PantryItem.create(pantryData);
+}
+
+  async increaseStock(
+  userId: mongoose.Types.ObjectId,
+  productId: mongoose.Types.ObjectId,
+  quantity: number
+) {
+  return PantryItem.findOneAndUpdate(
+    {
+      userId,
+      productId,
+    },
+    {
+      $inc: {
+        quantity,
+      },
+    },
+    {
+      returnDocument: "after",
+    }
+  );
+}
+
   async findExpiring(
     userId: mongoose.Types.ObjectId,
     date: Date
