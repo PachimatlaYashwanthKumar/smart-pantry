@@ -5,10 +5,25 @@ import Card from "../Card/Card";
 import Input from "../Input/Input";
 import Button from "../Button/Button";
 
-import productService, {
-  type Product,
-  type ProductInput,
-} from "../../services/product.service";
+import {
+  useCreateProduct,
+  useUpdateProduct,
+} from "../../hooks/useProducts";
+
+interface Product {
+  _id: string;
+  name: string;
+  category: string;
+  brand?: string;
+  defaultUnit: string;
+}
+
+interface ProductInput {
+  name: string;
+  category: string;
+  brand: string;
+  defaultUnit: string;
+}
 
 interface Props {
   product?: Product | null;
@@ -30,6 +45,9 @@ export default function ProductForm({
 
   const [loading, setLoading] = useState(false);
 
+  const createMutation = useCreateProduct();
+  const updateMutation = useUpdateProduct();
+
   function handleChange(
     field: keyof ProductInput,
     value: string
@@ -49,18 +67,16 @@ export default function ProductForm({
 
     try {
       if (product) {
-        await productService.updateProduct(
-          product._id,
-          formData
-        );
+        await updateMutation.mutateAsync({
+          id: product._id,
+          data: formData,
+        });
 
         toast.success(
           "Product updated successfully"
         );
       } else {
-        await productService.createProduct(
-          formData
-        );
+        await createMutation.mutateAsync(formData);
 
         toast.success(
           "Product created successfully"

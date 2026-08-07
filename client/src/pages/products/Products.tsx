@@ -1,141 +1,178 @@
-import { useCallback, useEffect, useState } from "react";
-import { FiPlus } from "react-icons/fi";
+import { useState } from "react";
 import toast from "react-hot-toast";
 
 import ProductForm from "../../components/ProductForm/ProductForm";
-import ProductTable from "../../components/ProductTable/ProductTable";
-import DeleteDialog from "../../components/DeleteDialog/DeleteDialog";
 
-import productService, {
-  type Product,
-} from "../../services/product.service";
+import {
+  useProducts,
+  useDeleteProduct,
+} from "../../hooks/useProducts";
+
+import {
+  Loader,
+  EmptyState,
+  PageHeader,
+  ConfirmDialog,
+  SearchInput,
+  Table,
+} from "../../components/ui";
+
+import type { Product } from "../../services/product.service";
 
 export default function Products() {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: products = [], isLoading } =
+    useProducts();
 
-  const [showForm, setShowForm] = useState(false);
+  const deleteMutation =
+    useDeleteProduct();
+
+  const [search, setSearch] =
+    useState("");
+
+  const [showForm, setShowForm] =
+    useState(false);
 
   const [editingProduct, setEditingProduct] =
     useState<Product | null>(null);
 
-  const [deleteProductId, setDeleteProductId] =
+  const [deleteId, setDeleteId] =
     useState<string | null>(null);
 
-  const loadProducts = useCallback(async () => {
-    try {
-      setLoading(true);
+  const filtered = products.filter((p) =>
+    p.name
+      .toLowerCase()
+      .includes(search.toLowerCase())
+  );
 
-      const data =
-        await productService.getProducts();
-
-      setProducts(data);
-    } catch (error) {
-      console.error(error);
-
-      toast.error("Failed to load products");
-    } finally {
-      setLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    async function fetchProducts() {
-      await loadProducts();
-    }
-
-    void fetchProducts();
-  }, [loadProducts]);
-
-  async function handleDelete() {
-    if (!deleteProductId) return;
+  async function confirmDelete() {
+    if (!deleteId) return;
 
     try {
-      await productService.deleteProduct(
-        deleteProductId
-      );
+      await deleteMutation.mutateAsync(deleteId);
 
       toast.success(
         "Product deleted successfully"
       );
-
-      setDeleteProductId(null);
-
-      loadProducts();
-    } catch (error) {
-      console.error(error);
-
-      toast.error("Failed to delete product");
+    } catch {
+      toast.error("Delete failed");
+    } finally {
+      setDeleteId(null);
     }
   }
 
-  function handleEdit(product: Product) {
-    setEditingProduct(product);
-
-    setShowForm(true);
-  }
+  if (isLoading) return <Loader />;
 
   return (
     <div>
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-3xl font-bold">
-          Products
-        </h1>
+      <PageHeader
+        title="Products"
+        subtitle="Manage your products"
+        action={
+          <button
+            onClick={() =>
+              setShowForm(true)
+            }
+            className="rounded-lg bg-green-600 px-5 py-2 text-white"
+          >
+            + Add Product
+          </button>
+        }
+      />
 
-        <button
-          onClick={() =>
-            setShowForm(!showForm)
-          }
-          className="flex items-center gap-2 rounded-lg bg-green-600 px-5 py-3 text-white hover:bg-green-700"
-        >
-          <FiPlus />
-
-          {showForm
-            ? "Close"
-            : "Add Product"}
-        </button>
+      <div className="mb-5">
+        <SearchInput
+          value={search}
+          onChange={setSearch}
+          placeholder="Search products..."
+        />
       </div>
 
-      {showForm && (
-        <div className="mb-8">
-          <ProductForm
-            product={editingProduct}
-            onSuccess={() => {
-              setShowForm(false);
-
-              setEditingProduct(null);
-
-              loadProducts();
-            }}
-            onCancel={() => {
-              setShowForm(false);
-
-              setEditingProduct(null);
-            }}
-          />
-        </div>
-      )}
-
-      {loading ? (
-        <div className="rounded-xl bg-white p-10 text-center shadow">
-          Loading...
-        </div>
-      ) : (
-        <ProductTable
-          products={products}
-          onDelete={(id) =>
-            setDeleteProductId(id)
-          }
-          onEdit={handleEdit}
+      {(showForm || editingProduct) && (
+        <ProductForm
+          product={editingProduct}
+          onSuccess={() => {
+            setShowForm(false);
+            setEditingProduct(null);
+          }}
+          onCancel={() => {
+            setShowForm(false);
+            setEditingProduct(null);
+          }}
         />
       )}
 
-      <DeleteDialog
-        open={!!deleteProductId}
+      {filtered.length === 0 ? (
+        <EmptyState
+          title="No Products"
+          description="Create your first product."
+        />
+      ) : (
+        <Table
+          headers={[
+            "Name",
+            "Category",
+            "Brand",
+            "Unit",
+            "Actions",
+          ]}
+        >
+          {filtered.map((product) => (
+            <tr
+              key={product._id}
+              className="border-t"
+            >
+              <td className="px-6 py-4">
+                {product.name}
+              </td>
+
+              <td className="px-6 py-4">
+                {product.category}
+              </td>
+
+              <td className="px-6 py-4">
+                {product.brand}
+              </td>
+
+              <td className="px-6 py-4">
+                {product.defaultUnit}
+              </td>
+
+              <td className="space-x-2 px-6 py-4">
+                <button
+                  onClick={() =>
+                    setEditingProduct(
+                      product
+                    )
+                  }
+                  className="rounded bg-yellow-500 px-3 py-1 text-white"
+                >
+                  Edit
+                </button>
+
+                <button
+                  onClick={() =>
+                    setDeleteId(
+                      product._id
+                    )
+                  }
+                  className="rounded bg-red-600 px-3 py-1 text-white"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </Table>
+      )}
+
+      <ConfirmDialog
+        open={!!deleteId}
+        title="Delete Product"
+        message="Are you sure you want to delete this product?"
+        onConfirm={confirmDelete}
         onCancel={() =>
-          setDeleteProductId(null)
+          setDeleteId(null)
         }
-        onConfirm={handleDelete}
       />
     </div>
   );

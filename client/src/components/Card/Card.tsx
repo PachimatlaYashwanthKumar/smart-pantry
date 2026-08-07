@@ -1,10 +1,22 @@
+import type { ReactNode } from "react";
+
 interface CardProps {
-  children: React.ReactNode;
+  title?: string;
+  children: ReactNode;
 }
 
-export default function Card({ children }: CardProps) {
+export default function Card({
+  title,
+  children,
+}: CardProps) {
   return (
-    <div className="w-full max-w-md rounded-xl bg-white p-8 shadow-lg">
+    <div className="rounded-xl border bg-white p-6 shadow-sm">
+      {title && (
+        <h2 className="mb-5 text-xl font-bold">
+          {title}
+        </h2>
+      )}
+
       {children}
     </div>
   );

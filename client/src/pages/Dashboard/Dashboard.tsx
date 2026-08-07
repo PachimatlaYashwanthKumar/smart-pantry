@@ -1,47 +1,96 @@
 import StatCard from "../../components/StatCard/StatCard";
+import Loader from "../../components/ui/Loader/Loader";
+import { PageHeader } from "../../components/ui";
+
+import { useDashboard } from "../../hooks/useDashboard";
 
 export default function Dashboard() {
+  const {
+    data: summary,
+    isLoading,
+    error,
+  } = useDashboard();
+
+  if (isLoading) {
+    return <Loader />;
+  }
+
+  if (error || !summary) {
+    return (
+      <div className="py-20 text-center text-red-600">
+        Failed to load dashboard.
+      </div>
+    );
+  }
+
   return (
     <div>
-      <h1 className="mb-8 text-3xl font-bold">
-        Dashboard
-      </h1>
+      <PageHeader
+        title="Dashboard"
+        subtitle="Overview of your Smart Pantry"
+      />
 
       <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
         <StatCard
           title="Products"
-          value={124}
+          value={summary.totalProducts}
         />
 
         <StatCard
           title="Pantry Items"
-          value={86}
+          value={summary.totalPantryItems}
         />
 
         <StatCard
-          title="Shopping List"
-          value={12}
-          color="text-blue-600"
+          title="Purchases"
+          value={summary.totalPurchases}
+        />
+
+        <StatCard
+          title="Inventory Qty"
+          value={summary.inventoryQuantity}
+        />
+      </div>
+
+      <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <StatCard
+          title="Total Spent (€)"
+          value={`€${summary.totalSpent.toFixed(2)}`}
+        />
+
+        <StatCard
+          title="Average Purchase (€)"
+          value={`€${summary.averagePurchaseValue.toFixed(
+            2
+          )}`}
+        />
+
+        <StatCard
+          title="Low Stock"
+          value={summary.lowStockItems}
+          color="text-red-600"
         />
 
         <StatCard
           title="Expiring Soon"
-          value={7}
-          color="text-red-600"
+          value={summary.expiringItems}
+          color="text-yellow-600"
         />
       </div>
 
-      <div className="mt-8 rounded-xl bg-white p-6 shadow">
-        <h2 className="mb-4 text-xl font-semibold">
-          Recent Activity
-        </h2>
+      {summary.lastPurchaseDate && (
+        <div className="mt-8 rounded-xl border bg-white p-6 shadow-sm">
+          <h2 className="mb-2 text-lg font-semibold">
+            Last Purchase
+          </h2>
 
-        <ul className="space-y-3">
-          <li>🥛 Milk added</li>
-          <li>🍚 Rice quantity updated</li>
-          <li>🥚 Eggs expire tomorrow</li>
-        </ul>
-      </div>
+          <p className="text-gray-600">
+            {new Date(
+              summary.lastPurchaseDate
+            ).toLocaleDateString()}
+          </p>
+        </div>
+      )}
     </div>
   );
 }

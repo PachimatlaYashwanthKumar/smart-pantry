@@ -16,6 +16,7 @@ import Shopping from "../pages/Shopping/Shopping";
 import Analytics from "../pages/Analytics/Analytics";
 import Settings from "../pages/Settings/Settings";
 import Products from "../pages/products/Products";
+import Purchases from "../pages/Purchases/Purchases";
 
 export default function AppRoutes() {
   return (
@@ -44,6 +45,11 @@ export default function AppRoutes() {
            path="/products"
            element={<Products />}
            />
+
+          <Route
+            path="/purchases"
+            element={<Purchases />}
+          />
 
           <Route
             path="/pantry"
