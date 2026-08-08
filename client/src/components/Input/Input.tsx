@@ -1,22 +1,34 @@
-import type { InputHTMLAttributes } from "react";
+import type {
+  InputHTMLAttributes,
+} from "react";
 
-interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
+interface Props
+  extends InputHTMLAttributes<HTMLInputElement> {
   label: string;
 }
 
 export default function Input({
   label,
-  className = "",
+  id,
   ...props
-}: InputProps) {
+}: Props) {
+  const inputId =
+    id ??
+    label.toLowerCase().replace(/\s+/g, "-");
+
   return (
-    <div className="mb-4">
-      <label className="mb-2 block text-sm font-medium text-gray-700">
+    <div className="mb-5">
+      <label
+        htmlFor={inputId}
+        className="mb-2 block text-sm font-medium text-gray-700"
+      >
         {label}
       </label>
 
       <input
-        className={`w-full rounded-lg border border-gray-300 px-4 py-3 outline-none transition focus:border-green-500 focus:ring-2 focus:ring-green-200 ${className}`}
+        id={inputId}
+        name={inputId}
+        className="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 transition-all focus:border-green-500"
         {...props}
       />
     </div>

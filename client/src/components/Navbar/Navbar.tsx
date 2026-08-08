@@ -26,7 +26,7 @@ export default function Navbar() {
         onClick={() => navigate("/dashboard")}
       >
         <h1 className="text-2xl font-bold text-green-600">
-          Smart Pantry
+          🥫 Smart Pantry
         </h1>
 
         <p className="text-xs text-gray-500">
@@ -40,7 +40,7 @@ export default function Navbar() {
 
         <input
           type="text"
-          placeholder="Search products, pantry..."
+          placeholder="Search products..., pantry..."
           className="w-full bg-transparent py-2 outline-none"
         />
       </div>

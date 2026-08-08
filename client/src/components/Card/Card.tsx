@@ -1,22 +1,18 @@
 import type { ReactNode } from "react";
 
-interface CardProps {
-  title?: string;
+interface Props {
   children: ReactNode;
+  className?: string;
 }
 
 export default function Card({
-  title,
   children,
-}: CardProps) {
+  className = "",
+}: Props) {
   return (
-    <div className="rounded-xl border bg-white p-6 shadow-sm">
-      {title && (
-        <h2 className="mb-5 text-xl font-bold">
-          {title}
-        </h2>
-      )}
-
+    <div
+      className={`rounded-2xl border border-gray-200 bg-white p-6 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl ${className}`}
+    >
       {children}
     </div>
   );

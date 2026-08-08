@@ -10,32 +10,37 @@ import {
 
 const links = [
   {
-    name: "Dashboard",
+    name: "🏠 Dashboard",
     path: "/dashboard",
     icon: <FiGrid size={18} />,
   },
   {
-    name: "Products",
+    name: "📦 Products",
     path: "/products",
     icon: <FiBox size={18} />,
   },
   {
-    name: "Purchases",
+    name: "🛒 Purchases",
     path: "/purchases",
     icon: <FiShoppingCart size={18} />,
   },
   {
-    name: "Pantry",
+    name: "🥫 Pantry",
     path: "/pantry",
     icon: <FiArchive size={18} />,
   },
   {
-    name: "Analytics",
+    name: "📝 Shopping",
+    path: "/shopping",
+    icon: <FiShoppingCart />,
+  },
+  {
+    name: "📊 Analytics",
     path: "/analytics",
     icon: <FiBarChart2 size={18} />,
   },
   {
-    name: "Settings",
+    name: "⚙️ Settings",
     path: "/settings",
     icon: <FiSettings size={18} />,
   },

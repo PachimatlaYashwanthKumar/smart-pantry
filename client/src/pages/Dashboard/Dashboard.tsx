@@ -1,96 +1,112 @@
-import StatCard from "../../components/StatCard/StatCard";
-import Loader from "../../components/ui/Loader/Loader";
-import { PageHeader } from "../../components/ui";
+import { useEffect, useMemo, useState } from "react";
 
-import { useDashboard } from "../../hooks/useDashboard";
+import PageHeader from "../../components/ui/PageHeader/PageHeader";
+
+import SummaryGrid from "../../components/dashboard/SummaryGrid";
+import MonthlyChart from "../../components/dashboard/MonthlyChart";
+import QuickActions from "../../components/dashboard/QuickActions";
+import LowStockCard from "../../components/dashboard/LowStockCard";
+import ExpiringSoonCard from "../../components/dashboard/ExpiringSoonCard";
+import RecentPurchases from "../../components/dashboard/RecentPurchases";
+
+import dashboardService from "../../services/dashboard.service";
+import analyticsService from "../../services/analytics.service";
+import purchaseService from "../../services/purchase.service";
+
+import type { DashboardSummary } from "../../services/dashboard.service";
+import type { MonthlySpending } from "../../services/analytics.service";
+import type { Purchase } from "../../services/purchase.service";
+
+import Loader from "../../components/ui/Loader/Loader";
 
 export default function Dashboard() {
-  const {
-    data: summary,
-    isLoading,
-    error,
-  } = useDashboard();
+  const [summary, setSummary] =
+    useState<DashboardSummary | null>(null);
 
-  if (isLoading) {
+  const [chart, setChart] =
+    useState<MonthlySpending[]>([]);
+
+  const [purchases, setPurchases] =
+    useState<Purchase[]>([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const [
+          summaryData,
+          chartData,
+          purchaseData,
+        ] = await Promise.all([
+          dashboardService.getSummary(),
+          analyticsService.getMonthlySpending(),
+          purchaseService.getPurchases(),
+        ]);
+
+        setSummary(summaryData);
+        setChart(chartData);
+        setPurchases(purchaseData);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    loadDashboard();
+  }, []);
+
+  const graph = useMemo(
+    () =>
+      chart.map((item) => ({
+        month:
+          item._id.month +
+          "/" +
+          item._id.year,
+
+        spent: item.totalSpent,
+      })),
+    [chart]
+  );
+
+  if (loading) {
     return <Loader />;
   }
 
-  if (error || !summary) {
+  if (!summary) {
     return (
-      <div className="py-20 text-center text-red-600">
+      <div className="p-8 text-red-600">
         Failed to load dashboard.
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-8">
       <PageHeader
         title="Dashboard"
-        subtitle="Overview of your Smart Pantry"
+        subtitle="Welcome back 👋 Here's an overview of your pantry."
       />
 
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Products"
-          value={summary.totalProducts}
+      <SummaryGrid summary={summary} />
+
+      <QuickActions />
+
+      <MonthlyChart data={graph} />
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <LowStockCard
+          count={summary.lowStockItems}
         />
 
-        <StatCard
-          title="Pantry Items"
-          value={summary.totalPantryItems}
-        />
-
-        <StatCard
-          title="Purchases"
-          value={summary.totalPurchases}
-        />
-
-        <StatCard
-          title="Inventory Qty"
-          value={summary.inventoryQuantity}
+        <ExpiringSoonCard
+          count={summary.expiringItems}
         />
       </div>
 
-      <div className="mt-8 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-        <StatCard
-          title="Total Spent (€)"
-          value={`€${summary.totalSpent.toFixed(2)}`}
-        />
-
-        <StatCard
-          title="Average Purchase (€)"
-          value={`€${summary.averagePurchaseValue.toFixed(
-            2
-          )}`}
-        />
-
-        <StatCard
-          title="Low Stock"
-          value={summary.lowStockItems}
-          color="text-red-600"
-        />
-
-        <StatCard
-          title="Expiring Soon"
-          value={summary.expiringItems}
-          color="text-yellow-600"
-        />
-      </div>
-
-      {summary.lastPurchaseDate && (
-        <div className="mt-8 rounded-xl border bg-white p-6 shadow-sm">
-          <h2 className="mb-2 text-lg font-semibold">
-            Last Purchase
-          </h2>
-
-          <p className="text-gray-600">
-            {new Date(
-              summary.lastPurchaseDate
-            ).toLocaleDateString()}
-          </p>
-        </div>
-      )}
+      <RecentPurchases
+        purchases={purchases}
+      />
     </div>
   );
 }

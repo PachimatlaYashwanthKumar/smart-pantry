@@ -1,17 +1,20 @@
-import type { ButtonHTMLAttributes } from "react";
+import type {
+  ButtonHTMLAttributes,
+} from "react";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  children: React.ReactNode;
+interface Props
+  extends ButtonHTMLAttributes<HTMLButtonElement> {
+  className?: string;
 }
 
 export default function Button({
   children,
   className = "",
   ...props
-}: ButtonProps) {
+}: Props) {
   return (
     <button
-      className={`w-full rounded-lg bg-green-600 px-4 py-3 font-medium text-white transition hover:bg-green-700 disabled:cursor-not-allowed disabled:bg-gray-400 ${className}`}
+      className={`rounded-xl bg-green-600 px-5 py-3 font-semibold text-white shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:bg-green-700 hover:shadow-lg active:translate-y-0 disabled:cursor-not-allowed disabled:bg-gray-400 ${className}`}
       {...props}
     >
       {children}

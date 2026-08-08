@@ -10,20 +10,20 @@ export default function PageHeader({
   action,
 }: PageHeaderProps) {
   return (
-    <div className="mb-8 flex items-center justify-between">
+    <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
       <div>
-        <h1 className="text-3xl font-bold">
+        <h1 className="text-4xl font-bold tracking-tight text-gray-900">
           {title}
         </h1>
 
         {subtitle && (
-          <p className="mt-1 text-gray-500">
+          <p className="mt-2 text-base text-gray-500">
             {subtitle}
           </p>
         )}
       </div>
 
-      {action}
+      {action && <div>{action}</div>}
     </div>
   );
 }
