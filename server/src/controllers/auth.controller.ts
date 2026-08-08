@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import authService from "../services/auth.services";
 import { AuthRequest } from "../middleware/auth.middleware";
 
+
 class AuthController {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
@@ -15,10 +16,11 @@ class AuthController {
     } catch (error) {
       next(error);
     }
-  } 
+  }
+  
   async login(req: Request, res: Response, next: NextFunction) {
-  try {
-    const { email, password } = req.body;
+    try {
+      const { email, password } = req.body;
 
     const result = await authService.login(email, password);
 
